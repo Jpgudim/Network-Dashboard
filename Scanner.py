@@ -12,23 +12,43 @@ load_dotenv()
 class NetworkScanner:
 
     def __init__(self):
-        self.scanner = nmap.PortScanner()
+        self.nmap = nmap.PortScanner()
 
     def scan_local(self):
 
-        local = os.getenv("home_ip_range")
+        network = os.getenv("nmap_test")
 
-        self.scanner.scan(hosts=local, arguments='-sn')
+        # -sn for ping scan, - sS for port scan
+        self.nmap.scan(hosts=network, arguments='-sS')
 
         devices = []
 
-        for host in self.scanner.all_hosts():
-            hostname = self.scanner[host].hostname()
+        # iterating through detected hosts
+        for host in self.nmap.all_hosts():
+            
+            #gets host name
+            hostname = self.nmap[host].hostname()
+
+            #gets port status (up or down)
+            status = self.nmap[host].state()
+
+            ports = []
+
+            #gets port numbers for each host name
+            for protocol in self.nmap[host].all_protocols():
+                ports = self.nmap[host][protocol].keys()
+
+
+            #get ports from nmap:
+            #nmap -p scanme.nmap.org
+
             devices.append({
                 'ip': host,
-                'hostname': hostname
+                'hostname': hostname,
+                'status:': status,
+                'ports:': ports
             })
-        
+
         return devices
 
 def main():
